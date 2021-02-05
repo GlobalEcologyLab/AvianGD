@@ -7,7 +7,7 @@ library(plyr)
 library(tidyverse)
 
 # import master dataset, which contains both IOC and BirdLifeInternational v2 taxonomies.
-mdb <- read.csv("~/Library/Mobile Documents/com~apple~CloudDocs/PhD/Chapter1/PaperCh1-master/Dataset/Master_db.csv", sep = ";", stringsAsFactors = F)
+mdb <- read.csv("~/Library/Mobile Documents/com~apple~CloudDocs/PhD/Chapter1/GeneticGap/Data/Master_db.csv", sep = ";", stringsAsFactors = F)
 mdb <- mdb[,c(3,5,7,9,10)]
 
 # import dataset used in the analysis
@@ -27,7 +27,7 @@ data2 <- data2[!duplicated(data2),]
 final <- data2[match(d$SP, data2$JETZ_NEW),]
 
 # import realms datasets
-path <- "~/Library/Mobile Documents/com~apple~CloudDocs/PhD/Chapter1/PaperCh1-master/Dataset/bird realm spp/"
+path <- "~/Library/Mobile Documents/com~apple~CloudDocs/PhD/Chapter1/GeneticGap/Data/bird realm spp/"
 files <- list.files(path = path, pattern = ".csv", full.names = T)
 realms <- lapply(files, read.csv, stringsAsFactors=F)
 

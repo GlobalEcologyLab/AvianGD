@@ -1,0 +1,20 @@
+#!/bin/bash
+
+cat Final_sequences.fasta | grep ">" > title_fasta
+cat Final_sequences.fasta | grep -v ">" > seq_fasta
+
+mkdir Birds_cytb
+num_entries=`grep -cve '^\s*$' title_fasta`
+#cat mammals_summary_07092015_COMPLETE | sort | uniq > mammals_summary_07092015_COMPLETE.temp
+for ((loops=1;loops<=${num_entries};loops++))
+do
+	seq_id=`cat < title_fasta | head -n $loops | tail -n 1 | cut -d ">" -f 2 | cut -d " " -f 1`
+	species=`cat < accnums_alignments | grep -w ${seq_id} | cut -d "," -f 2 | sort | uniq`
+	#instead of aves_blabla only put a file containing cytb and 1st column accession number and species name
+
+	cat title_fasta | sed -n ${loops}p >> Birds_cytb/${species}_cytb.fasta
+	cat seq_fasta | sed -n ${loops}p >> Birds_cytb/${species}_cytb.fasta
+
+
+	echo "$loops/$num_entries"
+done

@@ -2,13 +2,13 @@
 library(tidyverse)
 
 #load data tables
-matlab <- read_delim(file.choose(), delim = ';') #matlab_input_02Dec2019.csv
-output <- read_delim(file.choose(), delim=';') #matlab_output_17Feb2020.csv
+matlab <- read_delim(file.choose(), delim = ',') #dataset_for_matlab.csv
+output <- read_delim(file.choose(), delim=',') #matlab_output.csv
 
 # Column names were added manually to the output table from Matlab. The columns are:
 # SP = species name
 # GD = nucleotide diversity value
-# NUM_BP = number of mutations per base pair
+# NUM_MUT = number of mutations
 # DROPPED_PAIRS = number of paired sequences not included in the calculation
 # SEQS = total number of sequences for the species
 
@@ -34,4 +34,4 @@ d <- d[-which(is.nan(d$GD)),]
 d <- d[which(d$SEQS > 5),]
 
 # write file
-write_delim(d, "~/Library/Mobile Documents/com~apple~CloudDocs/PhD/Chapter1/PaperCh1-master/Dataset/dataset_analysis_17Feb2020.txt", delim = ',')
+write_delim(d, "~/Documents/PhD/Chapter1/22May2020/Data/dataset_analysis.csv", delim = ',')

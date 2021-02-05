@@ -1,6 +1,6 @@
 ## PhylANOVA function ##
 
-source("~/Library/Mobile Documents/com~apple~CloudDocs/PhD/Chapter1/PaperCh1-master/Scripts/phylANOVA_modified.R")
+source("~/Library/Mobile Documents/com~apple~CloudDocs/PhD/Chapter1/GeneticGap/Scripts/phylANOVA_modified.R")
 
 # the function here integrates resampling and phylANOVA. 
 

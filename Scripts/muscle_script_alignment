@@ -1,0 +1,16 @@
+#!/bin/bash
+
+#mkdir data_cytb_alignment
+num_entries=`grep -cve '^\s*$' list_species_for_alignments`
+#list_species is a txt file with the list of species names
+for ((loops=1;loops<=${num_entries};loops++))
+do
+	spnames=`cat < list_species_for_alignments | head -n $loops | tail -n 1`
+	#./muscle -in data_cytb/${spnames}_cytb.fasta -out Alignments600/${spnames}_cytb_alignment.fasta -gapopen -600.0
+	#./muscle -in data_cytb/${spnames}_cytb.fasta -out Alignments500/${spnames}_cytb_alignment.fasta -gapopen -500.0
+	#./muscle -in data_cytb/${spnames}_cytb.fasta -out Alignments300/${spnames}_cytb_alignment.fasta -gapopen -300.0
+	#./muscle -in data_cytb/${spnames}_cytb.fasta -out AlignmentsLong/${spnames}_cytb_alignment.fasta -maxiters 999 -maxhours 2
+	./Scripts/muscle -in Birds_cytb/${spnames}_cytb.fasta -out Alignments/${spnames}_cytb_alignment.fasta -gapopen -1000.0
+
+	echo "$loops/$num_entries"
+done
