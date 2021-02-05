@@ -1,4 +1,4 @@
-## Main analysis in paper ##
+## Main analyses in paper ##
 library(ape)
 library(phytools)
 library(caper)
@@ -6,11 +6,11 @@ library(rcompanion)
 library(vioplot)
 library(tidyverse)
 
-### --- Load data --- ###
-# output table from Matlab (dataset_paper_analysis.R)
+#### Load data ####
+# output table from Matlab (dataset_analysis.R)
 data <- read_delim(file.choose(), delim = ',')
 # phylogenetic tree (Jetz et al. 2012)
-tree <- ladderize(read.nexus(file.choose()))
+tree <- ladderize(read.nexus(file.choose())) # MCC_Hackett2_Full.tre
 
 # remove zero values
 # zeros are just an artefact of having sequences with different lengths and 
@@ -31,11 +31,11 @@ sig$P
 d$GDt = transformTukey(d$GD,plotit=TRUE)
 #d$GDt <- d$GD^0.175
 
-# add Threatened and Non-threatened conservation status
+# divide in Threatened and Non-threatened groups
 d$status <- ifelse(d$IUCN == "LC" | d$IUCN == "NT", "Non-threatened", "Threatened")
 table(d$status)
 
-### --- Model, resampling with modified phylANOVA --- ###
+#### Model: re-sampling with modified phylANOVA ####
 source("~/Library/Mobile Documents/com~apple~CloudDocs/PhD/Chapter1/GeneticGap/Scripts/resampling_function.R")
 
 TR <- d %>% filter(status=="Threatened") %>% .$GDt
@@ -46,6 +46,7 @@ names(NT) <- d %>% filter(status=="Non-threatened") %>% .$SP
 
 m <- resamp_phylanova(nonthreatened = NT, threatened = TR, nsamp = 50, nreps = 1000)
 
+# extract p-values from the 1000 repetitions
 P_val <- vector()
 for(i in 1:1000){
   pv <- m %>% .[[3]] %>% .[[i]] %>% .[[4]] %>% .$Pf
@@ -60,6 +61,7 @@ mean(P_val) + sd(P_val)
 median(P_val)
 mad(P_val, constant = 1)
 
+# extract F statistics
 F.obs_vector <- vector()
 for(i in 1:1000){
   fval <- m %>% .[[3]] %>% .[[i]] %>% .[[4]] %>% .$F
@@ -79,7 +81,7 @@ F_obs_df$col <- 'Fobs'
 
 F_hist <- rbind(F_df, F_obs_df)
 
-## Effect size ##
+# Effect size
 SS <- list()
 for(i in 1:1000){
   ss <- m %>% .[[3]] %>% .[[i]] %>% .[[4]] %>% .$`Sum Sq`
@@ -94,6 +96,7 @@ max(unlist(eta.sq))
 median(unlist(eta.sq))
 mad(unlist(eta.sq), constant=1)
 
+#### Plotting ####
 # distributions plot
 p <- ggplot(F_hist, aes(F.v, fill=col)) + 
   geom_density(alpha=0.6) + xlim(0,55) +
@@ -128,7 +131,7 @@ ggplot(d, aes(factor(status), GDt)) + geom_violin(aes(fill=factor(status))) +
     legend.position = "none") +
   scale_x_discrete(labels=c("Non-threatened", "Threatened"))
 
-### --- Calculating percentiles --- ###
+#### Calculating percentiles ####
 gd_pct <- d %>% .$GD %>% quantile(., prob = seq(0, 1, length = 21), type = 1)
 
 # number of species in the <5th percentile
@@ -214,10 +217,10 @@ d %>% filter(status == "Non-threatened") %>%
   .$SP %>% 
   gsub("_", " ", .)
 
-### --- correlation tests number of sequences and sequence lengths --- ###
+#### Sensitivity analyses: number of sequences and sequence lengths ####
 library(ggpubr)
-#mdb <- read.csv("~/Documents/PhD/Chapter1/22May2020/Data/Master_db.csv", stringsAsFactors = F)
-seq_lengths <- read.csv("~/Documents/PhD/Chapter1/22May2020/Data/SpeciesSequenceLengths.csv", stringsAsFactors = F)
+
+seq_lengths <- read.csv(file.choose(), stringsAsFactors = F) # SpeciesSequenceLengths.csv
 seq_lengths$SP <- seq_lengths$SP %>% str_split(., "_") %>% purrr::map(~.[1:2]) %>% purrr::map(lift(paste), sep="_") %>% unlist()
 
 d <- d %>% merge(., seq_lengths, by="SP")
@@ -228,7 +231,7 @@ d$AVG_LENGTH <- apply(d[,9:10], 1, mean) %>% round()
 
 round(mean(d$AVG_LENGTH)); round(mean(d$MIN_LENGTH)); round(mean(d$MAX_LENGTH)); round(sd(d$AVG_LENGTH))
 
-#plots
+# plots
 p1 <- ggscatter(data = d, y="GDt", x="SEQS", ylab="Genetic diversity", xlab="Number of Sequences", cor.coef = T, cor.method = "kendall",
                 cor.coef.coord = c(380, 0.1), add = 'reg.line', conf.int = T, add.params = list(color = 'red'))
 p2 <- ggplot(data=d, aes(x=SEQS)) + 
