@@ -5,6 +5,7 @@ library(caper)
 library(rcompanion)
 library(vioplot)
 library(tidyverse)
+library(ggpubr)
 
 #### Load data ####
 # output table from Matlab (dataset_analysis.R)
@@ -60,6 +61,7 @@ sd(P_val)
 mean(P_val) + sd(P_val)
 median(P_val)
 mad(P_val, constant = 1)
+hist(P_val)
 
 # extract F statistics
 F.obs_vector <- vector()
@@ -88,25 +90,39 @@ for(i in 1:1000){
   SS[[i]] <- ss 
 }
 
-eta.sq <- lapply(SS, function(x){(x[1]/sum(x))})
-hist(unlist(eta.sq), breaks=100)
-mean(unlist(eta.sq))
-sd(unlist(eta.sq))
-max(unlist(eta.sq))
-median(unlist(eta.sq))
-mad(unlist(eta.sq), constant=1)
+MS <- list()
+for(i in 1:1000){
+  ms <- m %>% .[[3]] %>% .[[i]] %>% .[[4]] %>% .$`Mean Sq`
+  MS[[i]] <- ms 
+}
+
+eta.sq <- sapply(SS, function(x){(x[1]/sum(x))})
+hist(eta.sq, breaks=100)
+mean(eta.sq)
+sd(eta.sq)
+max(eta.sq)
+median(eta.sq)
+mad(eta.sq, constant=1)
+
+# ω2 = (SSeffect – (dfeffect)(MSerror)) / MSerror + SStotal
+df <- 49
+omega.sq <- map2(SS, MS, ~abs((.x[1] - (df*.y[2]))/(.y[2] + sum(.x))))
+omega.sq <- unlist(omega.sq)
+mean(omega.sq)
+sd(omega.sq)
+median(omega.sq)
 
 #### Plotting ####
 # distributions plot
-p <- ggplot(F_hist, aes(F.v, fill=col)) + 
+distr <- ggplot(F_hist, aes(F.v, fill=col)) + 
   geom_density(alpha=0.6) + xlim(0,55) +
-  ggtitle("Observed vs. Null F-distribution") + 
+  ggtitle("Observed and Null F-distributions") + 
   xlab("F-value") + guides(fill=guide_legend(title = "Legend"))
 
-p + theme(axis.text = element_text(size=20), axis.title = element_text(size=24),
-          axis.title.x = element_text(margin = margin(30,0,0,0)),
-          axis.title.y = element_text(margin = margin(0,30,0,0)),
-          plot.title = element_text(size=30, hjust = 0.5, margin = margin(0,0,30,0)),
+theme <- theme(axis.text = element_text(size=16), axis.title = element_text(size=18),
+          axis.title.x = element_text(margin = margin(15,0,40,0)),
+          axis.title.y = element_text(margin = margin(0,15,0,0)),
+          plot.title = element_text(size=20, hjust = 0.5, margin = margin(0,0,15,0), face='bold'),
           legend.text = element_text(size = 20),
           legend.title = element_text(size = 20, face = 'bold'),
           legend.box.background = element_rect(colour = "black"),
@@ -114,6 +130,42 @@ p + theme(axis.text = element_text(size=20), axis.title = element_text(size=24),
           panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
           panel.background = element_blank(),
           axis.line = element_line(colour = "black"))
+
+distr <- distr + theme
+
+hist1 <- ggplot() +
+  geom_histogram(data=data.frame(p=P_val), aes(x=p), bins=100, fill="grey80", col="black") +
+  theme_bw() +
+  xlab("p-value") #+
+  #ggtitle("Distribution of p-values from the 1000 repetitions")
+
+hist1 <- hist1 + theme
+
+hist2 <- ggplot() +
+  geom_histogram(data=data.frame(eta=eta.sq), aes(x=eta), bins=100, fill="grey80", col="black") +
+  theme_bw() +
+  xlab("eta-squared") #+
+  #ggtitle("Distribution of eta-squared from the 1000 repetitions")
+
+hist2 <- hist2 + theme
+
+hist3 <- ggplot() +
+  geom_histogram(data=data.frame(omega=omega.sq), aes(x=omega), bins=100, fill="grey80", col="black") +
+  theme_bw() +
+  xlab("omega-squared") #+
+#ggtitle("Distribution of eta-squared from the 1000 repetitions")
+
+hist3 <- hist3 + theme
+
+p1 <- ggarrange(distr, 
+          annotate_figure(ggarrange(hist1, hist2, ncol=2), 
+                          top=text_grob("Distribution of p-values and eta-squared from the 1000 repetitions",
+                                        size=20, face='bold', vjust=-0.5)), nrow=2, ncol=1, align='v')
+
+p2 <- ggarrange(distr, 
+                annotate_figure(ggarrange(hist1, hist3, ncol=2), 
+                                top=text_grob("Distribution of p-values and omega-squared from the 1000 repetitions",
+                                              size=20, face='bold', vjust=-0.5)), nrow=2, ncol=1, align='v')
 
 # violin plot with the whole dataset
 ggplot(d, aes(factor(status), GDt)) + geom_violin(aes(fill=factor(status))) + 
