@@ -104,13 +104,23 @@ max(eta.sq)
 median(eta.sq)
 mad(eta.sq, constant=1)
 
+### Omega-squared ###
+## This analysis is less biased than eta-squared, because it akes into account sample size. If the sample size is small,
+## omega-squared should be used. 
 # ω2 = (SSeffect – (dfeffect)(MSerror)) / MSerror + SStotal
-df <- 49
-omega.sq <- map2(SS, MS, ~abs((.x[1] - (df*.y[2]))/(.y[2] + sum(.x))))
+df.eff <- 1 # number of groups - 1
+omega.sq <- map2(SS, MS, ~(.x[1] - (df.eff*.y[2]))/(.y[2] + sum(.x)))
 omega.sq <- unlist(omega.sq)
+hist(omega.sq, breaks=100)
 mean(omega.sq)
 sd(omega.sq)
 median(omega.sq)
+
+### Epsilon squared ####
+# eps2 = (SSeffect – (dfeffect)(MSerror)) / SStotal
+eps.sq <- unlist(map2(SS, MS, ~(.x[1] - (df.eff*.y[2]))/sum(.x)))
+hist(eps.sq, breaks=100)
+mean(eps.sq)
 
 #### Plotting ####
 # distributions plot
@@ -152,19 +162,34 @@ hist2 <- hist2 + theme
 hist3 <- ggplot() +
   geom_histogram(data=data.frame(omega=omega.sq), aes(x=omega), bins=100, fill="grey80", col="black") +
   theme_bw() +
+  xlim(0.0, 0.4) +
   xlab("omega-squared") #+
 #ggtitle("Distribution of eta-squared from the 1000 repetitions")
 
 hist3 <- hist3 + theme
 
-p1 <- ggarrange(distr, 
+hist4 <- ggplot() +
+  geom_histogram(data=data.frame(eps.sq=eps.sq), aes(x=eps.sq), bins=100, fill="grey80", col="black") +
+  theme_bw() +
+  xlim(0.0, 0.4) +
+  xlab("epsilon-squared")
+
+hist4 <- hist4 + theme
+
+sp1 <- ggarrange(distr, 
           annotate_figure(ggarrange(hist1, hist2, ncol=2), 
                           top=text_grob("Distribution of p-values and eta-squared from the 1000 repetitions",
                                         size=20, face='bold', vjust=-0.5)), nrow=2, ncol=1, align='v')
 
-p2 <- ggarrange(distr, 
+sp2 <- ggarrange(distr, 
                 annotate_figure(ggarrange(hist1, hist3, ncol=2), 
                                 top=text_grob("Distribution of p-values and omega-squared from the 1000 repetitions",
+                                              size=20, face='bold', vjust=-0.5)), nrow=2, ncol=1, align='v', labels="AUTO",
+                font.label = list(size = 30))
+
+sp3 <- ggarrange(distr, 
+                annotate_figure(ggarrange(hist1, hist4, ncol=2), 
+                                top=text_grob("Distribution of p-values and epsilon-squared from the 1000 repetitions",
                                               size=20, face='bold', vjust=-0.5)), nrow=2, ncol=1, align='v')
 
 # violin plot with the whole dataset
