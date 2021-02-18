@@ -122,6 +122,13 @@ eps.sq <- unlist(map2(SS, MS, ~(.x[1] - (df.eff*.y[2]))/sum(.x)))
 hist(eps.sq, breaks=100)
 mean(eps.sq)
 
+### Cohen's d ###
+cd <- sapply(1:1000, function(x){
+  (mean(m[[2]][[x]][1:50]) - mean(m[[2]][[x]][51:100]))/sqrt((sd(m[[2]][[x]][1:50])^2 + sd(m[[2]][[x]][51:100])^2)/2)
+})
+
+
+
 #### Plotting ####
 # distributions plot
 distr <- ggplot(F_hist, aes(F.v, fill=col)) + 
@@ -143,13 +150,12 @@ theme <- theme(axis.text = element_text(size=16), axis.title = element_text(size
 
 distr <- distr + theme
 
-hist1 <- ggplot() +
-  geom_histogram(data=data.frame(p=P_val), aes(x=p), bins=100, fill="grey80", col="black") +
+hist1 <- ggplot(data=data.frame(p=P_val), aes(x=p)) +
+  geom_histogram(position="identity", aes(y=..density..), bins=100, col="black", fill='grey90') +
   theme_bw() +
-  xlab("p-value") #+
-  #ggtitle("Distribution of p-values from the 1000 repetitions")
+  xlab("p-value")
 
-hist1 <- hist1 + theme
+hist1 <- hist1 + theme + ggtitle("Distribution of p-values from the 1000 repetitions")
 
 hist2 <- ggplot() +
   geom_histogram(data=data.frame(eta=eta.sq), aes(x=eta), bins=100, fill="grey80", col="black") +
@@ -159,10 +165,10 @@ hist2 <- ggplot() +
 
 hist2 <- hist2 + theme
 
-hist3 <- ggplot() +
-  geom_histogram(data=data.frame(omega=omega.sq), aes(x=omega), bins=100, fill="grey80", col="black") +
-  theme_bw() +
+hist3 <- ggplot(data=data.frame(omega=omega.sq), aes(x=omega)) +
+  geom_histogram(position="identity", aes(y=..density..), bins=100, fill="grey90", col="black") +
   xlim(0.0, 0.4) +
+  theme_bw() +
   xlab("omega-squared") #+
 #ggtitle("Distribution of eta-squared from the 1000 repetitions")
 
@@ -176,21 +182,33 @@ hist4 <- ggplot() +
 
 hist4 <- hist4 + theme
 
+hist5 <- ggplot() +
+  geom_histogram(data=data.table::data.table(cohen=cd), aes(x=cohen), bins = 100, fill="grey90", col="black") +
+  theme_bw() +
+  xlab("Cohen's d")
+
+hist5 <- hist5 + theme
+
 sp1 <- ggarrange(distr, 
           annotate_figure(ggarrange(hist1, hist2, ncol=2), 
                           top=text_grob("Distribution of p-values and eta-squared from the 1000 repetitions",
                                         size=20, face='bold', vjust=-0.5)), nrow=2, ncol=1, align='v')
 
 sp2 <- ggarrange(distr, 
-                annotate_figure(ggarrange(hist1, hist3, ncol=2), 
+                annotate_figure(ggarrange(hist1, hist3, ncol=2, labels=c("B", "C"), font.label = list(size = 30)), 
                                 top=text_grob("Distribution of p-values and omega-squared from the 1000 repetitions",
-                                              size=20, face='bold', vjust=-0.5)), nrow=2, ncol=1, align='v', labels="AUTO",
+                                              size=20, face='bold', vjust=-0.5)), nrow=2, ncol=1, align='v', labels = c("A"),
                 font.label = list(size = 30))
 
 sp3 <- ggarrange(distr, 
                 annotate_figure(ggarrange(hist1, hist4, ncol=2), 
                                 top=text_grob("Distribution of p-values and epsilon-squared from the 1000 repetitions",
                                               size=20, face='bold', vjust=-0.5)), nrow=2, ncol=1, align='v')
+
+sp4 <- ggarrange(ggarrange(distr, hist1, ncol=2, labels="AUTO", font.label = list(size = 30)),
+                 annotate_figure(ggarrange(hist3, hist5, ncol=2, labels=c("C", "D"), font.label = list(size = 30)), 
+                                 top=text_grob("Distribution of omega-squared and Cohen's d from the 1000 repetitions",
+                                               size=20, face='bold', vjust=-0.5)), nrow=2, ncol=1, align='v')
 
 # violin plot with the whole dataset
 ggplot(d, aes(factor(status), GDt)) + geom_violin(aes(fill=factor(status))) + 
