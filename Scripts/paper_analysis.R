@@ -47,6 +47,7 @@ names(NT) <- d %>% filter(status=="Non-threatened") %>% .$SP
 
 m <- resamp_phylanova(nonthreatened = NT, threatened = TR, nsamp = 50, nreps = 1000)
 
+#### Results ####
 # extract p-values from the 1000 repetitions
 P_val <- vector()
 for(i in 1:1000){
@@ -116,7 +117,7 @@ mean(omega.sq)
 sd(omega.sq)
 median(omega.sq)
 
-### Epsilon squared ####
+### Epsilon squared ###
 # eps2 = (SSeffect – (dfeffect)(MSerror)) / SStotal
 eps.sq <- unlist(map2(SS, MS, ~(.x[1] - (df.eff*.y[2]))/sum(.x)))
 hist(eps.sq, breaks=100)
