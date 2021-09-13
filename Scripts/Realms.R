@@ -5,10 +5,13 @@
 # set up libraries
 library(plyr)
 library(tidyverse)
+library(data.table)
 
 # import master dataset, which contains both IOC and BirdLifeInternational v2 taxonomies.
-mdb <- read.csv("~/Library/Mobile Documents/com~apple~CloudDocs/PhD/Chapter1/GeneticGap/Data/Master_db.csv", sep = ";", stringsAsFactors = F)
-mdb <- mdb[,c(3,5,7,9,10)]
+mdb <- fread("./Data/Master_db.csv")
+cols <- c("ACC_NUM", "IOC_SPECIES", "FINAL_NAME", "RED_LIST_JETZ.2017.", "NOTES")
+mdb <- mdb[, ..cols]
+mdb$FINAL_NAME <- ifelse(mdb$FINAL_NAME == "", NA, mdb$FINAL_NAME)
 
 # import dataset used in the analysis
 d <- read_delim(file.choose(), delim = ',') %>% .[-which(.$GD == 0),]
@@ -16,15 +19,16 @@ d <- read_delim(file.choose(), delim = ',') %>% .[-which(.$GD == 0),]
 # remove sequences that have been discarded from the calculation of GD
 data2 <- mdb[-which(mdb$NOTES == "EX" | mdb$NOTES == "DOM" | mdb$NOTES == "HYB" | 
                      mdb$NOTES == "NN" | mdb$NOTES == "Newly discovered taxon" | 
-                     mdb$NOTES == "IDENTICAL"),]
+                     mdb$NOTES == "IDENTICAL" | mdb$NOTES == "REMOVE"),]
+data2 <- data2[!is.na(FINAL_NAME)]
 
 # remove duplicates (each row has one species)
-data2 <- as.data.frame(cbind(gsub(" ", "_", data2$GB_SPECIES), gsub(" ", "_", data2$IOC_SPECIES), gsub(" ", "_", data2$JETZ_NEW), data2$RED_LIST_JETZ.2017., data2$NOTES))
-colnames(data2) <- c("GB_SPECIES", "IOC_SPECIES", "JETZ_NEW", "RED_LIST_JETZ.2017.", "NOTES")
+data2 <- as.data.frame(cbind(gsub(" ", "_", data2$IOC_SPECIES), gsub(" ", "_", data2$FINAL_NAME), data2$RED_LIST_JETZ.2017., data2$NOTES))
+colnames(data2) <- c("IOC_SPECIES", "FINAL_NAME", "RED_LIST_JETZ.2017.", "NOTES")
 data2 <- data2[!duplicated(data2),]
 
 # keep only the species analysed
-final <- data2[match(d$SP, data2$JETZ_NEW),]
+final <- data2[match(d$SP, data2$FINAL_NAME),]
 
 # import realms datasets
 path <- "~/Library/Mobile Documents/com~apple~CloudDocs/PhD/Chapter1/GeneticGap/Data/bird realm spp/"

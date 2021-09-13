@@ -14,8 +14,8 @@ output <- read_delim(file.choose(), delim=',') #matlab_output.csv
 
 # assign IUCN categories to matlab output table
 iucn <- unique(matlab[,2:3])
-iucn$JETZ_NEW <- gsub(' ', '_', iucn$JETZ_NEW)
-d <- cbind(output,iucn[match(output$SP, iucn$JETZ_NEW),2])
+iucn$FINAL_NAME <- gsub(' ', '_', iucn$FINAL_NAME)
+d <- cbind(output,iucn[match(output$SP, iucn$FINAL_NAME),2])
 colnames(d) <- c(colnames(d)[1:5], "IUCN")
 
 # remove species with categories EW, NR and DD
@@ -34,4 +34,4 @@ d <- d[-which(is.nan(d$GD)),]
 d <- d[which(d$SEQS > 5),]
 
 # write file
-write_delim(d, "~/Documents/PhD/Chapter1/22May2020/Data/dataset_analysis.csv", delim = ',')
+write_delim(d, "~/Documents/PhD/Chapter1/Major_Revisions/Data/dataset_analysis.csv", delim = ',')

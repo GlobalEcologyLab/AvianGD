@@ -106,7 +106,7 @@ median(eta.sq)
 mad(eta.sq, constant=1)
 
 ### Omega-squared ###
-## This analysis is less biased than eta-squared, because it akes into account sample size. If the sample size is small,
+## This analysis is less biased than eta-squared, because it takes into account sample size. If the sample size is small,
 ## omega-squared should be used. 
 # ω2 = (SSeffect – (dfeffect)(MSerror)) / MSerror + SStotal
 df.eff <- 1 # number of groups - 1
@@ -156,7 +156,7 @@ hist1 <- ggplot(data=data.frame(p=P_val), aes(x=p)) +
   theme_bw() +
   xlab("p-value")
 
-hist1 <- hist1 + theme + ggtitle("Distribution of p-values from the 1000 repetitions")
+hist1 <- hist1 + theme #+ ggtitle("Distribution of p-values from the 1000 repetitions")
 
 hist2 <- ggplot() +
   geom_histogram(data=data.frame(eta=eta.sq), aes(x=eta), bins=100, fill="grey80", col="black") +
@@ -218,7 +218,7 @@ ggplot(d, aes(factor(status), GDt)) + geom_violin(aes(fill=factor(status))) +
   # theme(axis.text = element_blank(),
   #       axis.title = element_blank(),
   #       plot.title = element_blank(),
-  #       legend.position = "none") +
+  #       legend.position = "none")
   theme(axis.text = element_text(size=20),
     axis.title.x = element_text(margin = margin(30,0,0,0)),
     axis.title.y = element_text(margin = margin(0,30,0,0)),
@@ -317,35 +317,36 @@ d %>% filter(status == "Non-threatened") %>%
 library(ggpubr)
 
 seq_lengths <- read.csv(file.choose(), stringsAsFactors = F) # SpeciesSequenceLengths.csv
-seq_lengths$SP <- seq_lengths$SP %>% str_split(., "_") %>% purrr::map(~.[1:2]) %>% purrr::map(lift(paste), sep="_") %>% unlist()
 
 d <- d %>% merge(., seq_lengths, by="SP")
-all.equal(d$SEQS.x, d$SEQS.y)
-d <- d[, -ncol(d)]
-d <- rename(d, "SEQS"=SEQS.x)
-d$AVG_LENGTH <- apply(d[,9:10], 1, mean) %>% round()
 
 round(mean(d$AVG_LENGTH)); round(mean(d$MIN_LENGTH)); round(mean(d$MAX_LENGTH)); round(sd(d$AVG_LENGTH))
 
 # plots
 p1 <- ggscatter(data = d, y="GDt", x="SEQS", ylab="Genetic diversity", xlab="Number of Sequences", cor.coef = T, cor.method = "kendall",
-                cor.coef.coord = c(380, 0.1), add = 'reg.line', conf.int = T, add.params = list(color = 'red'))
+                cor.coef.coord = c(280, 0.1), add = 'reg.line', conf.int = T, add.params = list(color = 'red')) +
+  theme(plot.margin = unit(c(1,1,1,1), "lines"))
+
 p2 <- ggplot(data=d, aes(x=SEQS)) + 
   geom_histogram(fill='grey80', col='black', bins = 100) + 
   xlab("Number of Sequences") +
-  ylab("Count") +
-  theme_pubr()
+  ylab("Count") + 
+  theme_pubr() + 
+  theme(plot.margin = unit(c(1,1,1,1), "lines"))
 
 
 p4 <- ggplot(data = d, aes(x=AVG_LENGTH)) +
   geom_histogram(fill='grey80', col='black', bins = 100) + 
   xlab("Average Sequence Length") +
-  ylab("Count") +
-  theme_pubr()
+  ylab("Count") + 
+  theme_pubr() +
+  theme(plot.margin = unit(c(1,1,1,1), "lines"))
 
 p3 <- ggscatter(data = d, y="GDt", x="AVG_LENGTH", ylab = "Genetic diversity", xlab="Average Sequence Length", cor.coef = T, 
-                cor.method = "kendall", cor.coef.coord = c(850, 0.1), add = 'reg.line', conf.int = T, add.params = list(color = 'red'))
+                cor.method = "kendall", cor.coef.coord = c(620, 0.1), add = 'reg.line', conf.int = T, add.params = list(color = 'red')) + 
+  theme(plot.margin = unit(c(1,1,1,1), "lines"))
 
-ggarrange(p1, NULL,  p2, NULL, NULL, NULL, p3, NULL, p4, ncol = 3, nrow = 3, widths = c(1, 0.2, 1), heights = c(1,0.2, 1), 
-          labels = c('A', '', 'B', '', '', '', 'C', '', 'D'))
+
+ggarrange(p1, p2, p3, p4, ncol = 2, nrow = 2, 
+          labels = c('A', 'B', 'C', 'D'))
 
