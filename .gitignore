@@ -3,3 +3,5 @@
 .RData
 .Ruserdata
 .DS_Store
+Data/Master_db.csv
+.DS_Store
