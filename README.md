@@ -63,7 +63,7 @@ This is a table containing the information of the cytochrome-b sequences of bird
 
 11. **dataset_paper_analysis.R** - code to generate the data used in the genetic diversity analyses.
 
-12. **resampling_function.R** and **phylANOVA_modified.R** - code to calculate perform phylANOVAs and test for differences in intra-specific genetic diversity between threatened and non-threatened species.
+12. **resampling_function.R** and **phylANOVA_modified.R** - code to perform phylANOVAs and test for differences in intra-specific genetic diversity between threatened and non-threatened species.
 
 13. **paper_analysis.R** - code to perform the analyses on genetic diversity and for producing the plots. This is the main code used to obtain the results presented in the manuscript.
 
